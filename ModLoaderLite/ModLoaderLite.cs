@@ -17,11 +17,11 @@ namespace ModLoaderLite
         {
             AppDomain.CurrentDomain.AssemblyResolve += HandleAssemblyResolve;
         }
-        public void Load(string path, string assemblyName="", string typeFullName="")
+        public void Load(string path, string assemblyName="", string typeFullName="", params object[] extra)
         {
             if(!patched.TryGetValueOrDefault(path))
             {
-                HarmonyLoaderLite.Enter(path, assemblyName, typeFullName);
+                HarmonyLoaderLite.Enter(path, assemblyName, typeFullName, extra);
                 patched[path] = true;
             }
         }

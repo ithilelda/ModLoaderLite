@@ -10,13 +10,13 @@ namespace ModLoaderLite
 {
     public static class HarmonyLoaderLite
     {
-        public static void Enter(string path, string assemblyName, string typeFullName)
+        public static void Enter(string path, string assemblyName, string typeFullName, params object[] extra)
         {
             var files = Directory.GetFiles(path, "*.dll", SearchOption.AllDirectories);
             var asms = AssemblyLoaderLite.LoadAssemblies(AssemblyLoaderLite.PreLoadAssemblies(files));
-            Apply(asms, assemblyName, typeFullName);
+            Apply(asms, assemblyName, typeFullName, extra);
         }
-        private static void Apply(IEnumerable<Assembly> asms, string assemblyName, string typeFullName)
+        private static void Apply(IEnumerable<Assembly> asms, string assemblyName, string typeFullName, params object[] extra)
         {
             KLog.Dbg("Applying Harmony patches");
             var failed = new List<string>();
@@ -34,7 +34,7 @@ namespace ModLoaderLite
                         if(init != null)
                         {
                             KLog.Dbg($"Found Init method for type {typeFullName} of {assemblyName}, Invoking...");
-                            init.Invoke(null, null);
+                            init.Invoke(null, extra);
                         }
                     }
                 }
