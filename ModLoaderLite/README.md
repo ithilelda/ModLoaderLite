@@ -1,0 +1,2 @@
+# ModLoaderLite
+Lite版的ModLoader，没有PreLoader Patcher，只有最基本的Harmony补丁功能，也没有UDS的支持。主要设计为修仙模拟器的官方接口MOD使用。
