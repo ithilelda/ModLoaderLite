@@ -5,24 +5,41 @@ using System.Collections.Generic;
 
 namespace ModLoaderLite
 {
-    public static class Extensions
-    {
-        public static bool TryGetValueOrDefault(this Dictionary<string, bool> d, string key) => d.TryGetValue(key, out var ret) ? ret : default;
-    }
     public class ModLoaderLite
     {
-        private static Dictionary<string, bool> patched = new Dictionary<string, bool>();
+        private static Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string, Assembly>();
 
         static ModLoaderLite()
         {
             AppDomain.CurrentDomain.AssemblyResolve += HandleAssemblyResolve;
         }
-        public void Load(string path, string assemblyName="", string typeFullName="", params object[] extra)
+        public Assembly Load(string file)
         {
-            if(!patched.TryGetValueOrDefault(path))
+            var rasm = Utilities.AssemblyLoader.PreLoadAssembly(file);
+            if (rasm != null)
             {
-                HarmonyLoaderLite.Enter(path, assemblyName, typeFullName, extra);
-                patched[path] = true;
+                if(!loadedAssemblies.ContainsKey(rasm.FullName))
+                {
+                    var asm = Utilities.AssemblyLoader.LoadAssembly(rasm);
+                    if(asm != null)
+                    {
+                        loadedAssemblies[asm.FullName] = asm;
+                        return asm;
+                    }
+                }
+                else
+                {
+                    KLog.Dbg($"{rasm.FullName} already loaded!");
+                    return loadedAssemblies[rasm.FullName];
+                }
+            }
+            return null;
+        }
+        public void ApplyHarmony(Assembly asm)
+        {
+            if(asm != null)
+            {
+                Utilities.AssemblyLoader.ApplyHarmony(asm);
             }
         }
 

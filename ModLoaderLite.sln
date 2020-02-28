@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Configuration", "Configuration\Configuration.csproj", "{18933B6F-20A2-48F2-AE86-7979E42D1B1D}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModLoaderLite", "ModLoaderLite\ModLoaderLite.csproj", "{BD21B6CF-3E24-4143-9374-7A30F6029C17}"
 EndProject
 Global
@@ -20,18 +18,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{18933B6F-20A2-48F2-AE86-7979E42D1B1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{18933B6F-20A2-48F2-AE86-7979E42D1B1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{18933B6F-20A2-48F2-AE86-7979E42D1B1D}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{18933B6F-20A2-48F2-AE86-7979E42D1B1D}.Debug|x64.Build.0 = Debug|Any CPU
-		{18933B6F-20A2-48F2-AE86-7979E42D1B1D}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{18933B6F-20A2-48F2-AE86-7979E42D1B1D}.Debug|x86.Build.0 = Debug|Any CPU
-		{18933B6F-20A2-48F2-AE86-7979E42D1B1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{18933B6F-20A2-48F2-AE86-7979E42D1B1D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{18933B6F-20A2-48F2-AE86-7979E42D1B1D}.Release|x64.ActiveCfg = Release|Any CPU
-		{18933B6F-20A2-48F2-AE86-7979E42D1B1D}.Release|x64.Build.0 = Release|Any CPU
-		{18933B6F-20A2-48F2-AE86-7979E42D1B1D}.Release|x86.ActiveCfg = Release|Any CPU
-		{18933B6F-20A2-48F2-AE86-7979E42D1B1D}.Release|x86.Build.0 = Release|Any CPU
 		{BD21B6CF-3E24-4143-9374-7A30F6029C17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BD21B6CF-3E24-4143-9374-7A30F6029C17}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD21B6CF-3E24-4143-9374-7A30F6029C17}.Debug|x64.ActiveCfg = Debug|Any CPU

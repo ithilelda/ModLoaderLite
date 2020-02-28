@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace ModLoader
+namespace ModLoaderLite.Utilities
 {
     public static class Configuration
     {
