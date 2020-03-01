@@ -6,7 +6,7 @@ using Harmony;
 
 namespace ModLoaderLite.Utilities
 {
-    public static class AssemblyLoader
+    static class AssemblyLoader
     {
         public static Assembly PreLoadAssembly(string file)
         {
@@ -55,12 +55,12 @@ namespace ModLoaderLite.Utilities
                     KLog.Dbg($"Applying harmony patch: {asm.FullName}");
                     var harmonyInstance = HarmonyInstance.Create(asm.FullName);
                     harmonyInstance?.PatchAll(asm);
-                    KLog.Dbg($"Applying patch {asm.FullName} succeeded!");
+                    KLog.Dbg($"Applying patch {asm.GetName().Name} succeeded!");
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    KLog.Dbg($"Patching harmony mod {asm.FullName} failed!");
+                    KLog.Dbg($"Patching harmony mod {asm.GetName().Name} failed!");
                     KLog.Dbg(ex.Message);
                 }
             }
