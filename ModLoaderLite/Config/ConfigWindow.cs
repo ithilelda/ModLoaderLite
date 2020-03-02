@@ -1,7 +1,6 @@
 ﻿using FairyGUI;
 using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 
 namespace ModLoaderLite.Config
 {

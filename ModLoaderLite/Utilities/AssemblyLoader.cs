@@ -66,5 +66,13 @@ namespace ModLoaderLite.Utilities
             }
             return false;
         }
+        public static void CallInit(Assembly asm)
+        {
+            if (asm != null)
+            {
+                var name = asm.GetName().Name;
+                asm.GetType($"{name}.{name}")?.GetMethod("Init")?.Invoke(null, null);
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using FairyGUI;
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -28,7 +29,16 @@ namespace ModLoaderLite.Config
                 using (var fs = new FileStream(fullName, FileMode.Open))
                 {
                     var formatter = new BinaryFormatter();
-                    wnd.ListItems = (Dictionary<string, Dictionary<string, ConfigItem>>)formatter.Deserialize(fs);
+                    var t = (Dictionary<string, Dictionary<string, ConfigItem>>)formatter.Deserialize(fs);
+                    foreach(var modpair in t)
+                    {
+                        if (!wnd.ListItems.TryGetValue(modpair.Key, out var dict)) continue;
+                        foreach(var itempair in modpair.Value)
+                        {
+                            dict[itempair.Key] = itempair.Value;
+                        }
+                        wnd.ListItems[modpair.Key] = dict;
+                    }
                 }
             }
         }

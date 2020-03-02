@@ -1,64 +1,65 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using Harmony;
 using XiaWorld;
+using FairyGUI;
 
 namespace ModLoaderLite
 {
-    public class ModLoaderLite
+    public static class ModLoaderLite
     {
-        private static bool patched = false;
-        private static Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string, Assembly>();
-        private static Dictionary<string, Assembly> patchedAssemblies = new Dictionary<string, Assembly>();
+        private static bool inited;
 
         static ModLoaderLite()
         {
             AppDomain.CurrentDomain.AssemblyResolve += HandleAssemblyResolve;
         }
-        public ModLoaderLite()
+        public static void Init()
         {
-            if(!patched)
+            if(!inited)
             {
-                var harmony = HarmonyInstance.Create("ModLoaderLite");
-                var original = typeof(MainManager).GetMethod("DoSave", new Type[] { typeof(string) });
-                var prefix = typeof(Config.SaveHook).GetMethod("DoSavePrefix");
-                harmony.Patch(original, new HarmonyMethod(prefix));
-                patched = true;
-            }
-        }
-        public Assembly Load(string file)
-        {
-            var rasm = Utilities.AssemblyLoader.PreLoadAssembly(file);
-            if (rasm != null)
-            {
-                if(!loadedAssemblies.ContainsKey(rasm.FullName))
+                //PatchSelf();
+                var activated = ModsMgr.Instance.AllMods.Where(p => p.Value.IsActive == true);
+                foreach(var p in activated)
                 {
-                    var asm = Utilities.AssemblyLoader.LoadAssembly(rasm);
-                    if(asm != null)
+                    var files = Directory.GetFiles(p.Value.Path, "*.dll", SearchOption.AllDirectories);
+                    foreach(var file in files)
                     {
-                        loadedAssemblies[asm.FullName] = asm;
-                        return asm;
+                        var rasm = Utilities.AssemblyLoader.PreLoadAssembly(file);
+                        var asm = Utilities.AssemblyLoader.LoadAssembly(rasm);
+                        Utilities.AssemblyLoader.CallInit(asm);
+                        Utilities.AssemblyLoader.ApplyHarmony(asm);
                     }
                 }
-                else
-                {
-                    KLog.Dbg($"{rasm.FullName} already loaded!");
-                    return loadedAssemblies[rasm.FullName];
-                }
+                inited = true;
             }
-            return null;
         }
-        public void ApplyHarmony(Assembly asm)
+        public static void AddMenu()
         {
-            if(asm != null && !patchedAssemblies.ContainsKey(asm.FullName))
+            // add a menu in the mainmenu.
+            KLog.Dbg("ModLoaderLite adding config menu option...");
+            try
             {
-                var suc = Utilities.AssemblyLoader.ApplyHarmony(asm);
-                if(suc) patchedAssemblies[asm.FullName] = asm;
+                var mainMenu = Traverse.Create(Wnd_GameMain.Instance).Field("MainMenu").GetValue<PopupMenu>();
+                mainMenu.AddItem("MLL设置", () => Config.Configuration.Show());
+            }
+            catch (Exception ex)
+            {
+                KLog.Dbg(ex.Message);
             }
         }
 
+
+        private static void PatchSelf()
+        {
+            var harmony = HarmonyInstance.Create("ModLoaderLite");
+            var original = typeof(MainManager).GetMethod("DoSave", new Type[] { typeof(string) });
+            var prefix = typeof(Config.SaveHook).GetMethod("DoSavePrefix");
+            harmony.Patch(original, new HarmonyMethod(prefix));
+        }
         private static Assembly HandleAssemblyResolve(object sender, ResolveEventArgs arg)
         {
             var name = new AssemblyName(arg.Name).Name + ".dll";
