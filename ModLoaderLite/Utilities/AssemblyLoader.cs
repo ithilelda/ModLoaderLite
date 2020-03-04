@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
-using Harmony;
+using HarmonyLib;
 
 
 namespace ModLoaderLite.Utilities
@@ -24,6 +24,7 @@ namespace ModLoaderLite.Utilities
                 {
                     KLog.Dbg($"Pre-Loading assembly {fileName} failed!");
                     KLog.Dbg(ex.Message);
+                    KLog.Dbg(ex.StackTrace);
                 }
             }
             return null;
@@ -42,18 +43,20 @@ namespace ModLoaderLite.Utilities
                 {
                     KLog.Dbg($"loading assembly {asm.GetName()} failed!");
                     KLog.Dbg(ex.Message);
+                    KLog.Dbg(ex.StackTrace);
                 }
             }
             return null;
         }
-        public static bool ApplyHarmony(Assembly asm)
+        public static bool ApplyHarmony(Assembly asm, string name)
         {
             if(asm != null)
             {
                 try
                 {
+                    var harmony_name = string.IsNullOrEmpty(name) ? asm.FullName : name;
                     KLog.Dbg($"Applying harmony patch: {asm.FullName}");
-                    var harmonyInstance = HarmonyInstance.Create(asm.FullName);
+                    var harmonyInstance = new Harmony(harmony_name);
                     harmonyInstance?.PatchAll(asm);
                     KLog.Dbg($"Applying patch {asm.GetName().Name} succeeded!");
                     return true;
@@ -62,6 +65,7 @@ namespace ModLoaderLite.Utilities
                 {
                     KLog.Dbg($"Patching harmony mod {asm.GetName().Name} failed!");
                     KLog.Dbg(ex.Message);
+                    KLog.Dbg(ex.StackTrace);
                 }
             }
             return false;
