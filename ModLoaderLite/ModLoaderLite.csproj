@@ -9,4 +9,8 @@
     <Reference Include="../../lib/*.dll" />
   </ItemGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /c /y &quot;$(TargetPath)&quot; &quot;%25ACSGAME%25\Mods\$(TargetName)&quot;" />
+  </Target>
+
 </Project>
