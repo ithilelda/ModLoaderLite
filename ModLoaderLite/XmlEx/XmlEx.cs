@@ -48,7 +48,8 @@ namespace ModLoaderLite.XmlEx
             }
             else
             {
-                var files = Directory.GetFiles(modpath, pattern, SearchOption.AllDirectories);
+                var path = Path.Combine(modpath, localpath);
+                var files = Directory.GetFiles(path, pattern, SearchOption.AllDirectories);
                 foreach (var file in files)
                 {
                     using (var fs = new FileStream(file, FileMode.Open))

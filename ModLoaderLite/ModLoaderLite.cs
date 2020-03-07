@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Collections.Generic;
 using HarmonyLib;
 using XiaWorld;
 using FairyGUI;
@@ -11,16 +12,20 @@ namespace ModLoaderLite
 {
     public static class ModLoaderLite
     {
-        private static bool inited;
+        static bool loaded;
+        static List<Assembly> assemblies = new List<Assembly>();
 
         static ModLoaderLite()
         {
             AppDomain.CurrentDomain.AssemblyResolve += HandleAssemblyResolve;
         }
-        public static void Init()
+
+        // single time method that loads the assemblies and applies harmony patches.
+        public static void Load()
         {
-            if(!inited)
+            if(!loaded)
             {
+                KLog.Dbg("[ModLoaderLite] loading assemblies...");
                 var harmony = new Harmony("jnjly.ModLoaderLite");
                 PatchMoreEvents(harmony);
                 //PatchSave(harmony);
@@ -33,21 +38,25 @@ namespace ModLoaderLite
                     {
                         var rasm = Utilities.AssemblyLoader.PreLoadAssembly(file);
                         var asm = Utilities.AssemblyLoader.LoadAssembly(rasm);
-                        Utilities.AssemblyLoader.CallInit(asm);
+                        if(asm != null) assemblies.Add(asm);
+                        Utilities.AssemblyLoader.Call(asm, "OnLoad");
                         Utilities.AssemblyLoader.ApplyHarmony(asm, harmony_name);
                     }
                 }
-                inited = true;
+                loaded = true;
             }
         }
-        public static void AddMenu()
+        // will be called each time a game is loaded.
+        public static void Init()
         {
-            // add a menu in the mainmenu.
-            KLog.Dbg("ModLoaderLite adding config menu option...");
             try
             {
-                var mainMenu = Traverse.Create(Wnd_GameMain.Instance).Field("MainMenu").GetValue<PopupMenu>();
-                mainMenu.AddItem("MLL设置", () => Config.Configuration.Show());
+                KLog.Dbg("[ModLoaderLite] initializing...");
+                AddMenu();
+                foreach (var asm in assemblies)
+                {
+                    Utilities.AssemblyLoader.Call(asm, "OnInit");
+                }
             }
             catch (Exception ex)
             {
@@ -57,6 +66,13 @@ namespace ModLoaderLite
         }
 
 
+        private static void AddMenu()
+        {
+            // add a menu in the mainmenu.
+            KLog.Dbg("[ModLoaderLite] adding config menu option...");
+            var mainMenu = Traverse.Create(Wnd_GameMain.Instance).Field("MainMenu").GetValue<PopupMenu>();
+            mainMenu.AddItem("MLL设置", () => Config.Configuration.Show());
+        }
         private static void PatchSave(Harmony harmony)
         {
             var original = typeof(MainManager).GetMethod("DoSave", new Type[] { typeof(string) });

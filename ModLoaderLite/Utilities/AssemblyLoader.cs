@@ -70,12 +70,20 @@ namespace ModLoaderLite.Utilities
             }
             return false;
         }
-        public static void CallInit(Assembly asm)
+        public static void Call(Assembly asm, string method)
         {
             if (asm != null)
             {
-                var name = asm.GetName().Name;
-                asm.GetType($"{name}.{name}")?.GetMethod("Init")?.Invoke(null, null);
+                try
+                {
+                    var name = asm.GetName().Name;
+                    asm.GetType($"{name}.{name}")?.GetMethod(method)?.Invoke(null, null);
+                }
+                catch(Exception ex)
+                {
+                    KLog.Dbg(ex.Message);
+                    KLog.Dbg(ex.StackTrace);
+                }
             }
         }
     }
