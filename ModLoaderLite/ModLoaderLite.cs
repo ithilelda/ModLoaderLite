@@ -12,38 +12,65 @@ namespace ModLoaderLite
 {
     public static class ModLoaderLite
     {
+        static bool depLoaded;
         static bool loaded;
         static List<Assembly> assemblies = new List<Assembly>();
 
-        static ModLoaderLite()
+        // the handle resolve event doesn't fire if an assembly of the same name is present...
+        // so we have to manually load our own dependencies to prevent conflict.
+        public static void LoadDep()
         {
-            AppDomain.CurrentDomain.AssemblyResolve += HandleAssemblyResolve;
+            if (!depLoaded)
+            {
+                try
+                {
+                    KLog.Dbg("[ModLoaderLite] Loading dependencies...");
+                    KLog.Dbg($"[ModLoaderLite] {typeof(ModLoaderLite).AssemblyQualifiedName}");
+                    var currentDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                    var harmonyLib = Path.Combine(currentDir, "0Harmony.dll");
+                    Assembly.LoadFrom(harmonyLib);
+                    KLog.Dbg("[ModLoaderLite] Harmony loaded.");
+                    depLoaded = true;
+                }
+                catch (Exception ex)
+                {
+                    KLog.Dbg(ex.Message);
+                    KLog.Dbg(ex.StackTrace);
+                }
+            }
         }
-
         // single time method that loads the assemblies and applies harmony patches.
         public static void Load()
         {
             if(!loaded)
             {
-                KLog.Dbg("[ModLoaderLite] loading assemblies...");
-                var harmony = new Harmony("jnjly.ModLoaderLite");
-                PatchMoreEvents(harmony);
-                //PatchSave(harmony);
-                var activated = ModsMgr.Instance.AllMods.Where(p => p.Value.IsActive == true && p.Value.Name != "ModLoaderLite"); // excluding ourself.
-                foreach(var p in activated)
+                try
                 {
-                    var files = Directory.GetFiles(p.Value.Path, "*.dll", SearchOption.AllDirectories);
-                    var harmony_name = $"{p.Value.Author}.{p.Value.Name}";
-                    foreach(var file in files)
+                    KLog.Dbg("[ModLoaderLite] loading assemblies...");
+                    var harmony = new Harmony("jnjly.ModLoaderLite");
+                    PatchMoreEvents(harmony);
+                    //PatchSave(harmony);
+                    var activated = ModsMgr.Instance.AllMods.Where(p => p.Value.IsActive == true && p.Value.Name != "ModLoaderLite"); // excluding ourself.
+                    foreach (var p in activated)
                     {
-                        var rasm = Utilities.AssemblyLoader.PreLoadAssembly(file);
-                        var asm = Utilities.AssemblyLoader.LoadAssembly(rasm);
-                        if(asm != null) assemblies.Add(asm);
-                        Utilities.AssemblyLoader.Call(asm, "OnLoad");
-                        Utilities.AssemblyLoader.ApplyHarmony(asm, harmony_name);
+                        var files = Directory.GetFiles(p.Value.Path, "*.dll", SearchOption.AllDirectories);
+                        var harmony_name = $"{p.Value.Author}.{p.Value.Name}";
+                        foreach (var file in files)
+                        {
+                            var rasm = Utilities.AssemblyLoader.PreLoadAssembly(file);
+                            var asm = Utilities.AssemblyLoader.LoadAssembly(rasm);
+                            if (asm != null) assemblies.Add(asm);
+                            Utilities.AssemblyLoader.Call(asm, "OnLoad");
+                            Utilities.AssemblyLoader.ApplyHarmony(asm, harmony_name);
+                        }
                     }
+                    loaded = true;
                 }
-                loaded = true;
+                catch (Exception ex)
+                {
+                    KLog.Dbg(ex.Message);
+                    KLog.Dbg(ex.StackTrace);
+                }
             }
         }
         // will be called each time a game is loaded.
@@ -94,21 +121,6 @@ namespace ModLoaderLite
                 KLog.Dbg(ex.Message);
                 KLog.Dbg(ex.StackTrace);
             }
-        }
-        private static Assembly HandleAssemblyResolve(object sender, ResolveEventArgs arg)
-        {
-            var name = new AssemblyName(arg.Name).Name + ".dll";
-            //KLog.Dbg($"resolving {arg.Name}");
-            var location = Assembly.GetExecutingAssembly().Location;
-            var thisDir = Path.GetDirectoryName(location);
-            var askedFile = Path.Combine(thisDir, name);
-            //KLog.Dbg($"the asked file is: {askedFile}");
-            if (File.Exists(askedFile))
-            {
-                var asm = Assembly.LoadFrom(askedFile);
-                return asm;
-            }
-            return null;
         }
     }
 }
