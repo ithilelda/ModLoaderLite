@@ -8,6 +8,7 @@ namespace ModLoaderLite.Config
     abstract class ConfigItem
     {
         public int Type;
+        [NonSerialized]
         public string Title;
     }
     [Serializable]
@@ -33,6 +34,7 @@ namespace ModLoaderLite.Config
         public GList ConfigList;
         public GButton Enter;
         public Dictionary<string, Dictionary<string, ConfigItem>> ListItems = new Dictionary<string, Dictionary<string, ConfigItem>>();
+
         public ConfigWindow()
         {
             contentPane = UIPackage.CreateObject("ModLoaderLite", "ConfigWindow").asCom;
@@ -42,6 +44,10 @@ namespace ModLoaderLite.Config
             ConfigList = contentPane.GetChild("n1").asList;
             Enter = contentPane.GetChild("enter").asButton;
             Enter.onClick.Add(OnEnterClicked);
+        }
+        public void OnConfigClicked()
+        {
+            ConfigUpdated?.Invoke();
         }
 
         protected override void OnShowUpdate(params object[] objs)
@@ -123,7 +129,7 @@ namespace ModLoaderLite.Config
                     }
                 }
             }
-            ConfigUpdated?.Invoke();
+            OnConfigClicked();
             Hide();
         }
     }

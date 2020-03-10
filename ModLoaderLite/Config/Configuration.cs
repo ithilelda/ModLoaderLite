@@ -1,13 +1,19 @@
 ﻿using FairyGUI;
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
+using XiaWorld;
 
 namespace ModLoaderLite.Config
 {
     public static class Configuration
     {
-        private static ConfigWindow wnd = new ConfigWindow();
+        static ConfigWindow wnd
+        {
+            get => UILogicMgr.GetWindow<ConfigWindow>();
+        }
+
         public static void Show() => wnd.Show();
         public static void Hide() => wnd.Hide();
 
@@ -19,12 +25,13 @@ namespace ModLoaderLite.Config
             var formatter = new BinaryFormatter();
             formatter.Serialize(stream, wnd.ListItems);
         }
-        public static void Deserialize()
+        public static void Deserialize(object state)
         {
             var fileName = GameWatch.Instance.LoadFile;
             var fullName = Path.Combine(Directory.GetCurrentDirectory(), $"saves/{fileName}.mll");
             if (File.Exists(fullName))
             {
+                //KLog.Dbg("[ModLoaderLite] configuration save found, loading...");
                 using (var fs = new FileStream(fullName, FileMode.Open))
                 {
                     var formatter = new BinaryFormatter();
@@ -34,11 +41,12 @@ namespace ModLoaderLite.Config
                         if (!wnd.ListItems.TryGetValue(modpair.Key, out var dict)) continue;
                         foreach(var itempair in modpair.Value)
                         {
-                            dict[itempair.Key] = itempair.Value;
+                            dict.UpdateConfig(itempair.Key, itempair.Value);
                         }
                         wnd.ListItems[modpair.Key] = dict;
                     }
                 }
+                wnd.OnConfigClicked();
             }
         }
 
@@ -135,6 +143,18 @@ namespace ModLoaderLite.Config
                 {
                     ((DropDown)item).Value = value;
                 }
+            }
+        }
+
+        private static void UpdateConfig(this Dictionary<string, ConfigItem> d, string key, ConfigItem other)
+        {
+            // we only update configs that are added by mods. missing configs will not be added.
+            // also, if the type doesn't match, we don't update either.
+            if (d.TryGetValue(key, out var self) && self.Type == other.Type)
+            {
+                // we do not want to preserve the title, because we may change it.
+                other.Title = self.Title;
+                d[key] = other;
             }
         }
     }

@@ -76,6 +76,7 @@ namespace ModLoaderLite.Utilities
             {
                 try
                 {
+                    KLog.Dbg($"[ModLoaderLite] calling the {method} method for {asm.FullName}...");
                     var name = asm.GetName().Name;
                     asm.GetType($"{name}.{name}")?.GetMethod(method)?.Invoke(null, null);
                 }

@@ -13,7 +13,7 @@ namespace ModLoaderLite
     public static class ModLoaderLite
     {
         static bool depLoaded;
-        static bool loaded;
+        static bool inited;
         static List<Assembly> assemblies = new List<Assembly>();
 
         // the handle resolve event doesn't fire if an assembly of the same name is present...
@@ -40,16 +40,17 @@ namespace ModLoaderLite
             }
         }
         // single time method that loads the assemblies and applies harmony patches.
-        public static void Load()
+        // also calls the oninit events that ought to be run only once each game.
+        public static void Init()
         {
-            if(!loaded)
+            if(!inited)
             {
                 try
                 {
                     KLog.Dbg("[ModLoaderLite] loading assemblies...");
                     var harmony = new Harmony("jnjly.ModLoaderLite");
                     PatchMoreEvents(harmony);
-                    //PatchSave(harmony);
+                    PatchSave(harmony);
                     var activated = ModsMgr.Instance.AllMods.Where(p => p.Value.IsActive == true && p.Value.Name != "ModLoaderLite"); // excluding ourself.
                     foreach (var p in activated)
                     {
@@ -60,11 +61,11 @@ namespace ModLoaderLite
                             var rasm = Utilities.AssemblyLoader.PreLoadAssembly(file);
                             var asm = Utilities.AssemblyLoader.LoadAssembly(rasm);
                             if (asm != null) assemblies.Add(asm);
-                            Utilities.AssemblyLoader.Call(asm, "OnLoad");
+                            Utilities.AssemblyLoader.Call(asm, "OnInit");
                             Utilities.AssemblyLoader.ApplyHarmony(asm, harmony_name);
                         }
                     }
-                    loaded = true;
+                    inited = true;
                 }
                 catch (Exception ex)
                 {
@@ -74,16 +75,17 @@ namespace ModLoaderLite
             }
         }
         // will be called each time a game is loaded.
-        public static void Init()
+        public static void Load()
         {
             try
             {
-                KLog.Dbg("[ModLoaderLite] initializing...");
+                KLog.Dbg("[ModLoaderLite] game loading...");
                 AddMenu();
                 foreach (var asm in assemblies)
                 {
-                    Utilities.AssemblyLoader.Call(asm, "OnInit");
+                    Utilities.AssemblyLoader.Call(asm, "OnLoad");
                 }
+                Config.Configuration.Deserialize(null);
             }
             catch (Exception ex)
             {
@@ -102,13 +104,14 @@ namespace ModLoaderLite
         }
         private static void PatchSave(Harmony harmony)
         {
+            KLog.Dbg("[ModLoaderLite] patching save hook...");
             var original = typeof(MainManager).GetMethod("DoSave", new Type[] { typeof(string) });
             var prefix = typeof(Config.SaveHook).GetMethod("DoSavePrefix");
             harmony.Patch(original, new HarmonyMethod(prefix));
         }
         private static void PatchMoreEvents(Harmony harmony)
         {
-            KLog.Dbg("ModLoaderLite patching more events module...");
+            KLog.Dbg("[ModLoaderLite] patching more events module...");
             try
             {
                 var rdoriginal = typeof(Npc).GetMethod("ReduceDamage", new Type[] { typeof(float), typeof(Npc), typeof(g_emElementKind), typeof(g_emDamageSource), typeof(Vector3?) });

@@ -17,7 +17,7 @@ namespace ModLoaderLite.Config
                 }
                 catch(SerializationException e)
                 {
-                    Console.WriteLine("Failed to deserialize. Reason: " + e.Message);
+                    KLog.Dbg("Failed to deserialize. Reason: " + e.Message);
                     throw;
                 }
             }
