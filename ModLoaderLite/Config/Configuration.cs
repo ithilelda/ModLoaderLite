@@ -20,31 +20,23 @@ namespace ModLoaderLite.Config
         public static void Subscribe(EventCallback0 cb) => wnd.ConfigUpdated += cb;
         public static void Unsubscribe(EventCallback0 cb) => wnd.ConfigUpdated -= cb;
 
-        public static void Serialize(Stream stream)
+        public static void Save()
         {
-            var formatter = new BinaryFormatter();
-            formatter.Serialize(stream, wnd.ListItems);
+            MLLMain.AddOrOverWriteSave("ModLoaderLite.Config", wnd.ListItems);
         }
-        public static void Deserialize(object state)
+        public static void Load()
         {
-            var fileName = GameWatch.Instance.LoadFile;
-            var fullName = Path.Combine(Directory.GetCurrentDirectory(), $"saves/{fileName}.mll");
-            if (File.Exists(fullName))
+            var t = MLLMain.GetSaveOrNull<Dictionary<string, Dictionary<string, ConfigItem>>>("ModLoaderLite.Config");
+            if (t != null)
             {
-                //KLog.Dbg("[ModLoaderLite] configuration save found, loading...");
-                using (var fs = new FileStream(fullName, FileMode.Open))
+                foreach (var modpair in t)
                 {
-                    var formatter = new BinaryFormatter();
-                    var t = (Dictionary<string, Dictionary<string, ConfigItem>>)formatter.Deserialize(fs);
-                    foreach(var modpair in t)
+                    if (!wnd.ListItems.TryGetValue(modpair.Key, out var dict)) continue;
+                    foreach (var itempair in modpair.Value)
                     {
-                        if (!wnd.ListItems.TryGetValue(modpair.Key, out var dict)) continue;
-                        foreach(var itempair in modpair.Value)
-                        {
-                            dict.UpdateConfig(itempair.Key, itempair.Value);
-                        }
-                        wnd.ListItems[modpair.Key] = dict;
+                        dict.UpdateConfig(itempair.Key, itempair.Value);
                     }
+                    wnd.ListItems[modpair.Key] = dict;
                 }
                 wnd.OnConfigClicked();
             }
