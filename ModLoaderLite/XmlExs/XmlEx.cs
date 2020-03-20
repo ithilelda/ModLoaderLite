@@ -4,7 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace ModLoaderLite.XmlEx
+namespace ModLoaderLite.XmlExs
 {
     public static class XmlEx
     {

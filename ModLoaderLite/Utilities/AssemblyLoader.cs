@@ -80,10 +80,11 @@ namespace ModLoaderLite.Utilities
                     var name = asm.GetName().Name;
                     asm.GetType($"{name}.{name}")?.GetMethod(method)?.Invoke(null, null);
                 }
-                catch(Exception ex)
+                catch(TargetInvocationException ex)
                 {
                     KLog.Dbg(ex.Message);
                     KLog.Dbg(ex.StackTrace);
+                    throw ex.InnerException;
                 }
             }
         }

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ModLoaderLite.XmlEx
+namespace ModLoaderLite.XmlExs
 {
     public class DefsEx<T>
     {
