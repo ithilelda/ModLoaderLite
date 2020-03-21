@@ -53,18 +53,18 @@ namespace ModLoaderLite.Utilities
         {
             if(asm != null)
             {
+                var harmony_name = string.IsNullOrEmpty(name) ? asm.FullName : name;
                 try
                 {
-                    var harmony_name = string.IsNullOrEmpty(name) ? asm.FullName : name;
-                    KLog.Dbg($"Applying harmony patch: {asm.FullName}");
+                    KLog.Dbg($"Applying harmony patch: {harmony_name}");
                     var harmonyInstance = new Harmony(harmony_name);
                     harmonyInstance?.PatchAll(asm);
-                    KLog.Dbg($"Applying patch {asm.GetName().Name} succeeded!");
+                    KLog.Dbg($"Applying patch {harmony_name} succeeded!");
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    KLog.Dbg($"Patching harmony mod {asm.GetName().Name} failed!");
+                    KLog.Dbg($"Patching harmony mod {harmony_name} failed!");
                     KLog.Dbg(ex.Message);
                     KLog.Dbg(ex.StackTrace);
                 }
