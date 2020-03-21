@@ -55,33 +55,20 @@ namespace ModLoaderLite.XmlExs
             var id = Path.Combine(localpath, typeof(T).ToString());
             if (serializers.TryGetValue(id, out var serializer))
             {
-                if (string.IsNullOrEmpty(modpath))
+                foreach (var file in Utilities.Util.GetModFiles(localpath, modpath, pattern))
                 {
-                    var paths = ModsMgr.Instance.GetPath(localpath).Where(pd => pd.mod != null).Select(pd => pd.path); // we ignore vanilla files.
-                    foreach (var path in paths)
-                    {
-                        var files = Directory.GetFiles(path, pattern, SearchOption.AllDirectories);
-                        foreach (var file in files)
-                        {
-                            using (var fs = new FileStream(file, FileMode.Open))
-                            {
-                                var defs = (T)serializer.Deserialize(fs);
-                                ret.Add(defs);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    var path = Path.Combine(modpath, localpath);
-                    var files = Directory.GetFiles(path, pattern, SearchOption.AllDirectories);
-                    foreach (var file in files)
+                    try
                     {
                         using (var fs = new FileStream(file, FileMode.Open))
                         {
                             var defs = (T)serializer.Deserialize(fs);
                             ret.Add(defs);
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        KLog.Dbg(ex.Message);
+                        KLog.Dbg(ex.StackTrace);
                     }
                 }
             }

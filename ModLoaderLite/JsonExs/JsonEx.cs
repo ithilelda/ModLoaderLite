@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace ModLoaderLite.JsonExs
@@ -11,29 +12,18 @@ namespace ModLoaderLite.JsonExs
         public static List<T> LoadJson<T>(string localpath, string modpath = null, string pattern = "*.json")
         {
             var ret = new List<T>();
-            if (string.IsNullOrEmpty(modpath))
+            foreach (var file in Utilities.Util.GetModFiles(localpath, modpath, pattern))
             {
-                var paths = ModsMgr.Instance.GetPath(localpath).Where(pd => pd.mod != null).Select(pd => pd.path); // we ignore vanilla files.
-                foreach (var path in paths)
-                {
-                    var files = Directory.GetFiles(path, pattern, SearchOption.AllDirectories);
-                    foreach (var file in files)
-                    {
-                        var str = File.ReadAllText(file);
-                        var items = JsonConvert.DeserializeObject<List<T>>(str, settings);
-                        ret.AddRange(items);
-                    }
-                }
-            }
-            else
-            {
-                var path = Path.Combine(modpath, localpath);
-                var files = Directory.GetFiles(path, pattern, SearchOption.AllDirectories);
-                foreach (var file in files)
+                try
                 {
                     var str = File.ReadAllText(file);
-                    var items = JsonConvert.DeserializeObject<List<T>>(str);
+                    var items = JsonConvert.DeserializeObject<List<T>>(str, settings);
                     ret.AddRange(items);
+                }
+                catch (Exception ex)
+                {
+                    KLog.Dbg(ex.Message);
+                    KLog.Dbg(ex.StackTrace);
                 }
             }
             return ret;

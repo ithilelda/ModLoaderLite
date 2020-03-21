@@ -25,24 +25,16 @@ namespace ModLoaderLite
         {
             if (!depLoaded)
             {
-                try
-                {
-                    KLog.Dbg("[ModLoaderLite] Loading dependencies...");
-                    KLog.Dbg($"[ModLoaderLite] {typeof(MLLMain).AssemblyQualifiedName}");
-                    var currentDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                    var harmonyLib = Path.Combine(currentDir, "0Harmony.dll");
-                    //var protobuf = Path.Combine(currentDir, "protobuf-net.dll");
-                    Assembly.LoadFrom(harmonyLib);
-                    KLog.Dbg("[ModLoaderLite] Harmony loaded.");
-                    //Assembly.LoadFrom(protobuf);
-                    //KLog.Dbg("[ModLoaderLite] Protobuf loaded.");
-                    depLoaded = true;
-                }
-                catch (Exception ex)
-                {
-                    KLog.Dbg(ex.Message);
-                    KLog.Dbg(ex.StackTrace);
-                }
+                KLog.Dbg("[ModLoaderLite] Loading dependencies...");
+                KLog.Dbg($"[ModLoaderLite] {typeof(MLLMain).AssemblyQualifiedName}");
+                var currentDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                var harmonyLib = Path.Combine(currentDir, "0Harmony.dll");
+                //var protobuf = Path.Combine(currentDir, "protobuf-net.dll");
+                Assembly.LoadFrom(harmonyLib);
+                KLog.Dbg("[ModLoaderLite] Harmony loaded.");
+                //Assembly.LoadFrom(protobuf);
+                //KLog.Dbg("[ModLoaderLite] Protobuf loaded.");
+                depLoaded = true;
             }
         }
         // single time method that loads the assemblies and applies harmony patches.
@@ -51,54 +43,46 @@ namespace ModLoaderLite
         {
             if(!inited)
             {
-                try
+                KLog.Dbg("[ModLoaderLite] loading assemblies...");
+                var harmony = new Harmony("jnjly.ModLoaderLite");
+                PatchMoreEvents(harmony);
+                PatchSave(harmony);
+                var activated = ModsMgr.Instance.AllMods.Where(p => p.Value.IsActive == true && p.Value.Name != "ModLoaderLite"); // excluding ourself.
+                foreach (var p in activated)
                 {
-                    KLog.Dbg("[ModLoaderLite] loading assemblies...");
-                    var harmony = new Harmony("jnjly.ModLoaderLite");
-                    PatchMoreEvents(harmony);
-                    PatchSave(harmony);
-                    var activated = ModsMgr.Instance.AllMods.Where(p => p.Value.IsActive == true && p.Value.Name != "ModLoaderLite"); // excluding ourself.
-                    foreach (var p in activated)
+                    try
                     {
                         var files = Directory.GetFiles(p.Value.Path, $"{p.Value.Name}.dll", SearchOption.AllDirectories);
                         var harmony_name = $"{p.Value.Author}.{p.Value.Name}";
                         foreach (var file in files)
                         {
-                            var rasm = Utilities.AssemblyLoader.PreLoadAssembly(file);
-                            var asm = Utilities.AssemblyLoader.LoadAssembly(rasm);
+                            var rasm = Utilities.Util.PreLoadAssembly(file);
+                            var asm = Utilities.Util.LoadAssembly(rasm);
                             if (asm != null) assemblies.Add(asm);
-                            Utilities.AssemblyLoader.Call(asm, "OnInit");
-                            Utilities.AssemblyLoader.ApplyHarmony(asm, harmony_name);
+                            Utilities.Util.Call(asm, "OnInit");
+                            Utilities.Util.ApplyHarmony(asm, harmony_name);
                         }
                     }
-                    inited = true;
+                    catch (Exception ex)
+                    {
+                        KLog.Dbg($"the mod {p.Value.DisplayName} cannot be loaded!");
+                        KLog.Dbg($"the error is: {ex.Message}");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    KLog.Dbg(ex.Message);
-                    KLog.Dbg(ex.StackTrace);
-                }
+                inited = true;
             }
         }
         // will be called each time a game is loaded.
         public static void Load()
         {
-            try
+            KLog.Dbg("[ModLoaderLite] game loading...");
+            AddMenu();
+            DoLoad();
+            foreach (var asm in assemblies)
             {
-                KLog.Dbg("[ModLoaderLite] game loading...");
-                AddMenu();
-                DoLoad();
-                foreach (var asm in assemblies)
-                {
-                    Utilities.AssemblyLoader.Call(asm, "OnLoad");
-                }
-                Config.Configuration.Load();
+                Utilities.Util.Call(asm, "OnLoad");
             }
-            catch (Exception ex)
-            {
-                KLog.Dbg(ex.Message);
-                KLog.Dbg(ex.StackTrace);
-            }
+            Config.Configuration.Load();
         }
 
         // a simple method to get mod specific saved data.
@@ -118,14 +102,22 @@ namespace ModLoaderLite
             // add a menu in the mainmenu.
             KLog.Dbg("[ModLoaderLite] adding config menu option...");
             var mainMenu = Traverse.Create(Wnd_GameMain.Instance).Field("MainMenu").GetValue<PopupMenu>();
-            mainMenu.AddItem("MLL设置", () => Config.Configuration.Show());
+            mainMenu?.AddItem("MLL设置", () => Config.Configuration.Show());
         }
         static void PatchSave(Harmony harmony)
         {
             KLog.Dbg("[ModLoaderLite] patching save hook...");
-            var original = typeof(MainManager).GetMethod("DoSave", new Type[] { typeof(string) });
-            var prefix = typeof(MLLMain).GetMethod("DoSavePrefix", BindingFlags.NonPublic | BindingFlags.Static);
-            harmony.Patch(original, new HarmonyMethod(prefix));
+            try
+            {
+                var original = typeof(MainManager).GetMethod("DoSave", new Type[] { typeof(string) });
+                var prefix = typeof(MLLMain).GetMethod("DoSavePrefix", BindingFlags.NonPublic | BindingFlags.Static);
+                harmony.Patch(original, new HarmonyMethod(prefix));
+            }
+            catch (Exception ex)
+            {
+                KLog.Dbg(ex.Message);
+                KLog.Dbg(ex.StackTrace);
+            }
         }
         static void PatchMoreEvents(Harmony harmony)
         {
@@ -153,7 +145,7 @@ namespace ModLoaderLite
                     Config.Configuration.Save();
                     foreach (var asm in assemblies)
                     {
-                        Utilities.AssemblyLoader.Call(asm, "OnSave");
+                        Utilities.Util.Call(asm, "OnSave");
                     }
                     var serializer = new BinaryFormatter();
                     serializer.Serialize(fs, saves);
@@ -178,10 +170,10 @@ namespace ModLoaderLite
                         var serializer = new BinaryFormatter();
                         saves = (Dictionary<string, object>)serializer.Deserialize(fs);
                     }
-                    catch(Exception ex)
+                    catch(Exception e)
                     {
-                        KLog.Dbg(ex.Message);
-                        KLog.Dbg(ex.StackTrace);
+                        KLog.Dbg("Failed to serialize. Reason: " + e.Message);
+                        KLog.Dbg(e.StackTrace);
                     }
                 }
             }

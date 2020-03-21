@@ -1,12 +1,13 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Collections.Generic;
 using HarmonyLib;
-
 
 namespace ModLoaderLite.Utilities
 {
-    static class AssemblyLoader
+    static class Util
     {
         public static Assembly PreLoadAssembly(string file)
         {
@@ -76,17 +77,62 @@ namespace ModLoaderLite.Utilities
             {
                 try
                 {
-                    KLog.Dbg($"[ModLoaderLite] calling the {method} method for {asm.FullName}...");
                     var name = asm.GetName().Name;
+                    KLog.Dbg($"[ModLoaderLite] calling the {method} method for {name}...");
                     asm.GetType($"{name}.{name}")?.GetMethod(method)?.Invoke(null, null);
                 }
-                catch(TargetInvocationException ex)
+                catch (ArgumentException ae)
                 {
-                    KLog.Dbg(ex.Message);
-                    KLog.Dbg(ex.StackTrace);
-                    throw ex.InnerException;
+                    KLog.Dbg(ae.Message);
+                }
+                catch (TargetInvocationException tie)
+                {
+                    KLog.Dbg($"invocation of {method} in {asm.FullName} failed!");
+                    var ie = tie.InnerException;
+                    KLog.Dbg(ie.Message);
+                    KLog.Dbg(ie.StackTrace);
+                }
+                catch (Exception e)
+                {
+                    KLog.Dbg(e.Message);
+                    KLog.Dbg(e.StackTrace);
                 }
             }
+        }
+
+        public static List<string> GetModFiles(string localpath, string modpath, string pattern)
+        {
+            var files = new List<string>();
+            if (string.IsNullOrEmpty(modpath))
+            {
+                var paths = ModsMgr.Instance.GetPath(localpath).Where(pd => pd.mod != null).Select(pd => pd.path); // we ignore vanilla files.
+                foreach (var path in paths)
+                {
+                    try
+                    {
+                        files.AddRange(Directory.GetFiles(path, pattern, SearchOption.AllDirectories));
+                    }
+                    catch (Exception ex)
+                    {
+                        KLog.Dbg($"Unable to get files in path {path}, ignoring the mod!");
+                        KLog.Dbg($"the error is: {ex.Message}");
+                    }
+                }
+            }
+            else
+            {
+                try
+                {
+                    var path = Path.Combine(modpath, localpath);
+                    files.AddRange(Directory.GetFiles(path, pattern, SearchOption.AllDirectories));
+                }
+                catch (Exception ex)
+                {
+                    KLog.Dbg($"Unable to get files in {localpath} of {modpath}, check your directory name parameters!");
+                    KLog.Dbg($"the error is: {ex.Message}");
+                }
+            }
+            return files;
         }
     }
 }
