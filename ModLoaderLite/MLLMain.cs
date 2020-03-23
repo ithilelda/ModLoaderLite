@@ -69,6 +69,7 @@ namespace ModLoaderLite
                         KLog.Dbg($"the error is: {ex.Message}");
                     }
                 }
+                SpriteAnimations.SpriteManager.LoadAll();
                 inited = true;
             }
         }

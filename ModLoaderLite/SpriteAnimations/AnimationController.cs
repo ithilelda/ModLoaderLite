@@ -21,27 +21,14 @@ namespace ModLoaderLite.SpriteAnimations
         }
 
         // our api.
-        public void AddSpriteAnimation(string texpath, int column = 1, int row = 1, float fps = 10f, float scale = 1f)
+        public void AddSpriteAnimation(string name)
         {
-            var sprites = SpriteLoader.LoadSpriteSheet(texpath, column, row, 100f / scale);
-            if (sprites != null)
+            var spriteSheet = SpriteManager.GetSpriteSheet(name);
+            if (spriteSheet != null)
             {
                 var go = new GameObject();
                 var animator = go.AddComponent<SpriteAnimator>();
-                animator.Sprites = sprites;
-                animator.frameTime = 1 / fps;
-                go.transform.parent = gameObject.transform;
-                gos.Add(go);
-            }
-        }
-        public void AddSprite(string texpath, float scale = 1f)
-        {
-            var sprite = SpriteLoader.LoadSprite(texpath, 100f / scale);
-            if (sprite != null)
-            {
-                var go = new GameObject();
-                var animator = go.AddComponent<SpriteAnimator>();
-                animator.Sprites = new List<Sprite> { sprite };
+                animator.SpriteSheet = spriteSheet;
                 go.transform.parent = gameObject.transform;
                 gos.Add(go);
             }
