@@ -6,26 +6,25 @@ using UnityEngine;
 
 namespace ModLoaderLite.SpriteAnimations
 {
-    public static class SpriteLoader
+    static class SpriteLoader
     {
         static Dictionary<string, Sprite> sprites = new Dictionary<string, Sprite>();
         static Dictionary<string, List<Sprite>> spriteSheets = new Dictionary<string, List<Sprite>>();
-        public static Sprite LoadSprite(string localpath)
+        public static Sprite LoadSprite(string localpath, float pixelsPerUnit)
         {
             if (!sprites.TryGetValue(localpath, out var sprite))
             {
                 var tex = RenderPool.Instance.GetTexture2D(localpath);
                 if (tex != null)
                 {
-                    sprite = Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(0.5f, 0f));
+                    sprite = Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), pixelsPerUnit);
                     sprites.Add(localpath, sprite);
                 }
             }
             return sprite;
         }
-        public static Sprite GetSprite(string path) => sprites.TryGetValue(path, out var ret) ? ret : default;
 
-        public static List<Sprite> LoadSpriteSheet(string localpath, int column, int row)
+        public static List<Sprite> LoadSpriteSheet(string localpath, int column, int row, float pixelsPerUnit)
         {
             if (!spriteSheets.TryGetValue(localpath, out var sprites))
             {
@@ -42,7 +41,7 @@ namespace ModLoaderLite.SpriteAnimations
                         for (int c = 0; c < column; c++)
                         {
                             //KLog.Dbg($"the position of current sprite is: {c * width}, {r * height}.");
-                            var sprite = Sprite.Create(tex, new Rect(c * width, r * height, width, height), new Vector2(0.5f, 0f));
+                            var sprite = Sprite.Create(tex, new Rect(c * width, r * height, width, height), new Vector2(0.5f, 0f), pixelsPerUnit);
                             sprites.Add(sprite);
                         }
                     }
@@ -50,31 +49,6 @@ namespace ModLoaderLite.SpriteAnimations
                 }
             }
             return sprites;
-        }
-        public static GameObject CreateSpecialEffect(string texpath, int column=1, int row=1, float fps=10f)
-        {
-            var sprites = LoadSpriteSheet(texpath, column, row);
-            var go = new GameObject();
-            if (sprites != null)
-            {
-                KLog.Dbg($"sprite sheet {texpath} loading succeeded!");
-                go.AddComponent<SpriteRenderer>();
-                var animator = go.AddComponent<SpriteAnimator>();
-                animator.Init(sprites, fps);
-            }
-            return go;
-        }
-        public static GameObject CreateSingleEffect(string texpath)
-        {
-            var sprite = LoadSprite(texpath);
-            var go = new GameObject();
-            if (sprite != null)
-            {
-                KLog.Dbg($"single sprite {texpath} loading succeeded!");
-                go.AddComponent<SpriteRenderer>().sprite = sprite;
-                var animator = go.AddComponent<SpriteAnimator>();
-            }
-            return go;
         }
     }
 }
