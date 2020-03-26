@@ -7,7 +7,13 @@
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.0.0.8" />
     <PackageReference Include="protobuf-net" Version="2.4.4" />
-    <Reference Include="../../lib/*.dll" />
+    <Reference Include="..\..\lib\Assembly-CSharp-firstpass.dll" />
+    <Reference Include="..\..\lib\Assembly-CSharp.dll" />
+    <Reference Include="..\..\lib\Newtonsoft.Json.dll" />
+    <Reference Include="..\..\lib\UnityEngine.CoreModule.dll" />
+    <Reference Include="..\..\lib\UnityEngine.dll" />
+    <Reference Include="..\..\lib\UnityEngine.SharedInternalsModule.dll" />
+    <Reference Include="..\..\lib\UnityEngine.UnityWebRequestModule.dll" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
