@@ -62,6 +62,7 @@ namespace ModLoaderLite
                             Utilities.Util.Call(asm, "OnInit");
                             Utilities.Util.ApplyHarmony(asm, harmony_name);
                         }
+                        AssetBundles.BundleManager.LoadAllBundlesFromMod(p.Value);
                     }
                     catch (Exception ex)
                     {

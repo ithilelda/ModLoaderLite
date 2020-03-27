@@ -108,14 +108,17 @@ namespace ModLoaderLite.Utilities
                 var paths = ModsMgr.Instance.GetPath(localpath).Where(pd => pd.mod != null).Select(pd => pd.path); // we ignore vanilla files.
                 foreach (var path in paths)
                 {
-                    try
+                    if (Directory.Exists(path))
                     {
-                        files.AddRange(Directory.GetFiles(path, pattern, SearchOption.AllDirectories));
-                    }
-                    catch (Exception ex)
-                    {
-                        KLog.Dbg($"Unable to get files in path {path}, ignoring the mod!");
-                        KLog.Dbg($"the error is: {ex.Message}");
+                        try
+                        {
+                            files.AddRange(Directory.GetFiles(path, pattern, SearchOption.AllDirectories));
+                        }
+                        catch (Exception ex)
+                        {
+                            KLog.Dbg($"Unable to get files in path {path}, ignoring the mod!");
+                            KLog.Dbg($"the error is: {ex.Message}");
+                        }
                     }
                 }
             }
@@ -124,7 +127,7 @@ namespace ModLoaderLite.Utilities
                 try
                 {
                     var path = Path.Combine(modpath, localpath);
-                    files.AddRange(Directory.GetFiles(path, pattern, SearchOption.AllDirectories));
+                    if (Directory.Exists(path)) files.AddRange(Directory.GetFiles(path, pattern, SearchOption.AllDirectories));
                 }
                 catch (Exception ex)
                 {

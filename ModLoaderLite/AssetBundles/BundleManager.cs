@@ -7,9 +7,21 @@ namespace ModLoaderLite.AssetBundles
 {
     public static class BundleManager
     {
-        public static List<AssetBundle> Load(string localpath, string modpath)
+        static Dictionary<string, AssetBundle> AssetBundles { get; set; } = new Dictionary<string, AssetBundle>();
+
+        public static void LoadAllBundlesFromMod(ModsMgr.ModData data)
         {
-            var bundles = Utilities.Util.GetModFiles(localpath, modpath, "*.bundle");
+            var bundles = Load("Resources/AssetBundles", data.Path, "*");
+            foreach (var b in bundles)
+            {
+                AssetBundles[b.name] = b;
+            }
+        }
+        public static AssetBundle GetAB(string key) => AssetBundles.TryGetValue(key, out var ret) ? ret : default;
+
+        static List<AssetBundle> Load(string localpath, string modpath, string pattern)
+        {
+            var bundles = Utilities.Util.GetModFiles(localpath, modpath, pattern);
             var ret = new List<AssetBundle>();
             foreach(var bf in bundles)
             {
@@ -18,7 +30,7 @@ namespace ModLoaderLite.AssetBundles
                     var loadedAB = AssetBundle.LoadFromFile(bf);
                     if (loadedAB != null)
                     {
-                        KLog.Dbg($"AB loaded! {loadedAB.name}");
+                        KLog.Dbg($"[ModLoaderLite BundleManager] AB {loadedAB.name} loaded!");
                         ret.Add(loadedAB);
                     }
                 }
