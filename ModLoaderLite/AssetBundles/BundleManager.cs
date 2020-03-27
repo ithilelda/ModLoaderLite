@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -7,31 +8,29 @@ namespace ModLoaderLite.AssetBundles
 {
     public static class BundleManager
     {
-        static Dictionary<string, AssetBundle> AssetBundles { get; set; } = new Dictionary<string, AssetBundle>();
+        static Dictionary<string, AssetBundle> assetBundles { get; set; } = new Dictionary<string, AssetBundle>();
 
-        public static void LoadAllBundlesFromMod(ModsMgr.ModData data)
+        public static AssetBundle GetAB(string key) => assetBundles.TryGetValue(key, out var ret) ? ret : default;
+        public static GameObject GetPrefabFromAB(string abName, string prefabName)
         {
-            var bundles = Load("Resources/AssetBundles", data.Path, "*");
-            foreach (var b in bundles)
+            if (assetBundles.TryGetValue(abName, out var ab))
             {
-                AssetBundles[b.name] = b;
+                return ab.LoadAsset<GameObject>(prefabName);
             }
+            return null;
         }
-        public static AssetBundle GetAB(string key) => AssetBundles.TryGetValue(key, out var ret) ? ret : default;
-
-        static List<AssetBundle> Load(string localpath, string modpath, string pattern)
+        public static AssetBundle LoadAssetBundleFromMod(ModsMgr.ModData data, string fileName)
         {
-            var bundles = Utilities.Util.GetModFiles(localpath, modpath, pattern);
-            var ret = new List<AssetBundle>();
-            foreach(var bf in bundles)
+            if (!assetBundles.TryGetValue(fileName, out var loadedAB))
             {
                 try
                 {
-                    var loadedAB = AssetBundle.LoadFromFile(bf);
+                    var bundleFile = Path.Combine(Path.Combine(data.Path, "Resources/AssetBundles"), fileName);
+                    loadedAB = AssetBundle.LoadFromFile(bundleFile);
                     if (loadedAB != null)
                     {
-                        KLog.Dbg($"[ModLoaderLite BundleManager] AB {loadedAB.name} loaded!");
-                        ret.Add(loadedAB);
+                        KLog.Dbg($"[ModLoaderLite BundleManager] AB {fileName} loaded!");
+                        assetBundles.Add(fileName, loadedAB);
                     }
                 }
                 catch (Exception e)
@@ -40,7 +39,15 @@ namespace ModLoaderLite.AssetBundles
                     KLog.Dbg(e.StackTrace);
                 }
             }
-            return ret;
+            return loadedAB;
+        }
+        public static void UnLoadAssetBundle(string key)
+        {
+            if (assetBundles.TryGetValue(key, out var ab))
+            {
+                ab.Unload(true);
+                assetBundles.Remove(key);
+            }
         }
     }
 }
