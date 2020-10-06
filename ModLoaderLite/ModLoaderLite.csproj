@@ -5,15 +5,25 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.0.0.8" />
+    <PackageReference Include="Lib.Harmony" Version="2.0.2" />
     <PackageReference Include="protobuf-net" Version="2.4.4" />
-    <Reference Include="..\..\lib\Assembly-CSharp-firstpass.dll" />
-    <Reference Include="..\..\lib\Assembly-CSharp.dll" />
-    <Reference Include="..\..\lib\Newtonsoft.Json.dll" />
-    <Reference Include="..\..\lib\UnityEngine.CoreModule.dll" />
-    <Reference Include="..\..\lib\UnityEngine.dll" />
     <Reference Include="..\..\lib\UnityEngine.SharedInternalsModule.dll" />
     <Reference Include="..\..\lib\UnityEngine.UnityWebRequestModule.dll" />
+    <Reference Include="Assembly-CSharp">
+      <HintPath>E:\SteamLibrary\steamapps\common\AmazingCultivationSimulator\Amazing Cultivation Simulator_Data\Managed\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>E:\SteamLibrary\steamapps\common\AmazingCultivationSimulator\Amazing Cultivation Simulator_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>E:\SteamLibrary\steamapps\common\AmazingCultivationSimulator\Amazing Cultivation Simulator_Data\Managed\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>E:\SteamLibrary\steamapps\common\AmazingCultivationSimulator\Amazing Cultivation Simulator_Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>E:\SteamLibrary\steamapps\common\AmazingCultivationSimulator\Amazing Cultivation Simulator_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

@@ -1,6 +1,7 @@
 ﻿using XiaWorld;
 using System;
 using UnityEngine;
+using XiaWorld.Fight;
 
 namespace ModLoaderLite.MoreEvents
 {
@@ -14,8 +15,11 @@ namespace ModLoaderLite.MoreEvents
         public readonly g_emElementKind Element;
         public readonly g_emDamageSource Source;
         public readonly Vector3? Hitpos;
+        public readonly float Penetration;
+        public readonly string Desc;
+        public readonly FabaoBase Fabao;
 
-        public ReduceDamageEventArgs(Npc from, Npc target, float damage, g_emElementKind element, g_emDamageSource source, Vector3? hitpos)
+        public ReduceDamageEventArgs(Npc from, Npc target, float damage, g_emElementKind element, g_emDamageSource source, Vector3? hitpos, float penetration, string desc, FabaoBase fabao)
         {
             From = from;
             Target = target;
@@ -23,6 +27,9 @@ namespace ModLoaderLite.MoreEvents
             Element = element;
             Source = source;
             Hitpos = hitpos;
+            Penetration = penetration;
+            Desc = desc;
+            Fabao = fabao;
         }
     }
 

@@ -7,12 +7,12 @@ def pack_directory(path):
     def name_comparer(entry):
         return int(entry.name.strip('image .png'))
     files = [e for e in os.scandir(path) if e.name.endswith('png') and not e.name.startswith('output')]
-    files.sort(key = name_comparer)
+    files.reverse()
 
     images = [Image.open(e.path) for e in files]
     x = max([i.size[0] for i in images])
     y = max([i.size[1] for i in images])
-    column = 5
+    column = 32
     row = math.ceil(len(images) / column)
     output = Image.new('RGBA', (x * column, y * row))
     count = 0
@@ -29,5 +29,5 @@ def pack_directory(path):
     output.save(output_name)
 
 
-path = r'E:\export\100套精美技能特效光效序列连帧图（PNG通道）\游戏技能序列特效01\技能光效合集01 (94)'
+path = r'E:\export\fuwen'
 pack_directory(path)

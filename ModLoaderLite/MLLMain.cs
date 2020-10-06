@@ -8,6 +8,7 @@ using HarmonyLib;
 using XiaWorld;
 using FairyGUI;
 using UnityEngine;
+using XiaWorld.Fight;
 
 namespace ModLoaderLite
 {
@@ -125,7 +126,7 @@ namespace ModLoaderLite
             KLog.Dbg("[ModLoaderLite] patching more events module...");
             try
             {
-                var rdoriginal = typeof(Npc).GetMethod("ReduceDamage", new Type[] { typeof(float), typeof(Npc), typeof(g_emElementKind), typeof(g_emDamageSource), typeof(Vector3?) });
+                var rdoriginal = typeof(Npc).GetMethod("ReduceDamage", new Type[] { typeof(float), typeof(Npc), typeof(g_emElementKind), typeof(g_emDamageSource), typeof(Vector3?), typeof(float), typeof(string), typeof(FabaoBase) });
                 var rldoriginal = typeof(Npc).GetMethod("ReduceLingDamage");
                 harmony.Patch(rdoriginal, new HarmonyMethod(typeof(MoreEvents.EventHooks), "ReduceDamagePrefix"));
                 harmony.Patch(rldoriginal, new HarmonyMethod(typeof(MoreEvents.EventHooks), "ReduceLingDamagePrefix"));
