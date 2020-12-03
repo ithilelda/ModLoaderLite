@@ -46,6 +46,7 @@ namespace ModLoaderLite
             {
                 KLog.Dbg("[ModLoaderLite] loading assemblies...");
                 var harmony = new Harmony("jnjly.ModLoaderLite");
+                var lua_assemblies = Traverse.Create(LuaMgr.Instance.Env).Field("translator").Field("assemblies").GetValue<List<Assembly>>();
                 PatchMoreEvents(harmony);
                 PatchSave(harmony);
                 var activated = ModsMgr.Instance.AllMods.Where(p => p.Value.IsActive == true && p.Value.Name != "ModLoaderLite"); // excluding ourself.
@@ -59,7 +60,11 @@ namespace ModLoaderLite
                         {
                             var rasm = Utilities.Util.PreLoadAssembly(file);
                             var asm = Utilities.Util.LoadAssembly(rasm);
-                            if (asm != null) assemblies.Add(asm);
+                            if (asm != null)
+                            {
+                                assemblies.Add(asm);
+                                lua_assemblies.Add(asm);
+                            }
                             Utilities.Util.Call(asm, "OnInit");
                             Utilities.Util.ApplyHarmony(asm, harmony_name);
                         }
