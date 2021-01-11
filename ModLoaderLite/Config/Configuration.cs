@@ -26,7 +26,7 @@ namespace ModLoaderLite.Config
         }
         public static void Load()
         {
-            var t = MLLMain.GetSaveOrNull<Dictionary<string, Dictionary<string, ConfigItem>>>("ModLoaderLite.Config");
+            var t = MLLMain.GetSaveOrDefault<Dictionary<string, Dictionary<string, ConfigItem>>>("ModLoaderLite.Config");
             if (t != null)
             {
                 foreach (var modpair in t)

@@ -7,8 +7,6 @@ using System.Runtime.Serialization.Formatters.Binary;
 using HarmonyLib;
 using XiaWorld;
 using FairyGUI;
-using UnityEngine;
-using XiaWorld.Fight;
 
 namespace ModLoaderLite
 {
@@ -30,9 +28,12 @@ namespace ModLoaderLite
                 KLog.Dbg($"[ModLoaderLite] {typeof(MLLMain).AssemblyQualifiedName}");
                 var currentDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 var harmonyLib = Path.Combine(currentDir, "0Harmony.dll");
+                var simdLib = Path.Combine(currentDir, "Mono.Simd.dll");
                 //var protobuf = Path.Combine(currentDir, "protobuf-net.dll");
                 Assembly.LoadFrom(harmonyLib);
                 KLog.Dbg("[ModLoaderLite] Harmony loaded.");
+                Assembly.LoadFrom(simdLib);
+                KLog.Dbg("[ModLoaderLite] Mono.Simd loaded.");
                 //Assembly.LoadFrom(protobuf);
                 //KLog.Dbg("[ModLoaderLite] Protobuf loaded.");
                 depLoaded = true;
@@ -44,11 +45,11 @@ namespace ModLoaderLite
         {
             if(!inited)
             {
-                KLog.Dbg("[ModLoaderLite] loading assemblies...");
+                KLog.Dbg("[ModLoaderLite] patching the game with modloaderlite patches...");
                 var harmony = new Harmony("jnjly.ModLoaderLite");
+                harmony.PatchAll();
+                KLog.Dbg("[ModLoaderLite] loading assemblies...");
                 var lua_assemblies = Traverse.Create(LuaMgr.Instance.Env).Field("translator").Field("assemblies").GetValue<List<Assembly>>();
-                PatchMoreEvents(harmony);
-                PatchSave(harmony);
                 var activated = ModsMgr.Instance.AllMods.Where(p => p.Value.IsActive == true && p.Value.Name != "ModLoaderLite"); // excluding ourself.
                 foreach (var p in activated)
                 {
@@ -91,9 +92,34 @@ namespace ModLoaderLite
             }
             Config.Configuration.Load();
         }
-
+        // will be called each time the game is saving.
+        public static void Save()
+        {
+            if (!string.IsNullOrEmpty(GameWatch.Instance.LoadFile))
+            {
+                var fullPath = Path.Combine(Directory.GetCurrentDirectory(), $"saves/{GameWatch.Instance.LoadFile}.mll");
+                using (var fs = new FileStream(fullPath, FileMode.Create))
+                {
+                    try
+                    {
+                        Config.Configuration.Save();
+                        foreach (var asm in assemblies)
+                        {
+                            Utilities.Util.Call(asm, "OnSave");
+                        }
+                        var serializer = new BinaryFormatter();
+                        serializer.Serialize(fs, saves);
+                    }
+                    catch (Exception e)
+                    {
+                        KLog.Dbg("Failed to deserialize. Reason: " + e.Message);
+                        KLog.Dbg(e.StackTrace);
+                    }
+                }
+            }
+        }
         // a simple method to get mod specific saved data.
-        public static T GetSaveOrNull<T>(string id) => saves.TryGetValue(id, out var ret) ? (T)ret : default;
+        public static T GetSaveOrDefault<T>(string id) => saves.TryGetValue(id, out var ret) ? (T)ret : default;
         // same for adding mod specific data. Later data will overwrite former, and a bool is returned false if adding, true if overwriting.
         public static bool AddOrOverWriteSave(string id, object item)
         {
@@ -104,66 +130,15 @@ namespace ModLoaderLite
         }
 
 
+
         static void AddMenu()
         {
             // add a menu in the mainmenu.
             KLog.Dbg("[ModLoaderLite] adding config menu option...");
-            var mainMenu = Traverse.Create(Wnd_GameMain.Instance).Field("MainMenu").GetValue<PopupMenu>();
+            var mainMenu = Traverse.Create(Wnd_GameMain.Instance).Field<PopupMenu>("MainMenu").Value;
             mainMenu?.AddItem("MLL设置", () => Config.Configuration.Show());
         }
-        static void PatchSave(Harmony harmony)
-        {
-            KLog.Dbg("[ModLoaderLite] patching save hook...");
-            try
-            {
-                var original = typeof(MainManager).GetMethod("DoSave", new Type[] { typeof(string) });
-                var prefix = typeof(MLLMain).GetMethod("DoSavePrefix", BindingFlags.NonPublic | BindingFlags.Static);
-                harmony.Patch(original, new HarmonyMethod(prefix));
-            }
-            catch (Exception ex)
-            {
-                KLog.Dbg(ex.Message);
-                KLog.Dbg(ex.StackTrace);
-            }
-        }
-        static void PatchMoreEvents(Harmony harmony)
-        {
-            KLog.Dbg("[ModLoaderLite] patching more events module...");
-            try
-            {
-                var rdoriginal = typeof(Npc).GetMethod("ReduceDamage", new Type[] { typeof(float), typeof(Npc), typeof(g_emElementKind), typeof(g_emDamageSource), typeof(Vector3?), typeof(float), typeof(string), typeof(FabaoBase) });
-                var rldoriginal = typeof(Npc).GetMethod("ReduceLingDamage");
-                harmony.Patch(rdoriginal, new HarmonyMethod(typeof(MoreEvents.EventHooks), "ReduceDamagePrefix"));
-                harmony.Patch(rldoriginal, new HarmonyMethod(typeof(MoreEvents.EventHooks), "ReduceLingDamagePrefix"));
-            }
-            catch (Exception ex)
-            {
-                KLog.Dbg(ex.Message);
-                KLog.Dbg(ex.StackTrace);
-            }
-        }
-        static void DoSavePrefix(string name)
-        {
-            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), $"saves/{name}.mll");
-            using (var fs = new FileStream(fullPath, FileMode.Create))
-            {
-                try
-                {
-                    Config.Configuration.Save();
-                    foreach (var asm in assemblies)
-                    {
-                        Utilities.Util.Call(asm, "OnSave");
-                    }
-                    var serializer = new BinaryFormatter();
-                    serializer.Serialize(fs, saves);
-                }
-                catch (Exception e)
-                {
-                    KLog.Dbg("Failed to deserialize. Reason: " + e.Message);
-                    KLog.Dbg(e.StackTrace);
-                }
-            }
-        }
+        
         static void DoLoad()
         {
             var fileName = GameWatch.Instance.LoadFile;

@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>net35</TargetFramework>
+    <Authors>jnjly</Authors>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.0.2" />
+    <PackageReference Include="Lib.Harmony" Version="2.0.4" />
     <PackageReference Include="protobuf-net" Version="2.4.4" />
     <Reference Include="..\..\lib\UnityEngine.SharedInternalsModule.dll" />
     <Reference Include="..\..\lib\UnityEngine.UnityWebRequestModule.dll" />
@@ -14,6 +15,9 @@
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>E:\SteamLibrary\steamapps\common\AmazingCultivationSimulator\Amazing Cultivation Simulator_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Simd">
+      <HintPath>E:\SteamLibrary\steamapps\common\AmazingCultivationSimulator\Mods\ModLoaderLite\Mono.Simd.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>E:\SteamLibrary\steamapps\common\AmazingCultivationSimulator\Amazing Cultivation Simulator_Data\Managed\Newtonsoft.Json.dll</HintPath>
